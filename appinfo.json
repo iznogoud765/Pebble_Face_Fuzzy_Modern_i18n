@@ -1,0 +1,62 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Alec6",
+    "longName": "FuzzyTime_Modern_i18n",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "fonts/Domestic_Manners-bold.ttf",
+                "name": "FONT_DOMESTIC_BOLD_SUBSET_40",
+                "trackingAdjust": 1,
+                "type": "font"
+            },
+            {
+                "file": "images/menu_icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            },
+            {
+                "file": "fonts/Domestic_Manners.ttf",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
+                "type": "font"
+            },
+            {
+                "file": "fonts/Domestic_Manners.ttf",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_36",
+                "type": "font"
+            },
+            {
+                "file": "images/charging.png",
+                "name": "IMAGE_CHARGING",
+                "type": "png"
+            },
+            {
+                "file": "images/bt_on.png",
+                "name": "IMAGE_BLUETOOTH_ON",
+                "type": "png"
+            },
+            {
+                "file": "images/bt_off.png",
+                "name": "IMAGE_BLUETOOTH_OFF",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Fuzzy Modern",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "ebfdc529-cc04-4120-8d60-212988e99a14",
+    "versionCode": 1,
+    "versionLabel": "2.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
