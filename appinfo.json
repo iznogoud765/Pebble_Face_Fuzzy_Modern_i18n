@@ -10,8 +10,7 @@
         "media": [
             {
                 "file": "fonts/Domestic_Manners-bold.ttf",
-                "name": "FONT_DOMESTIC_BOLD_SUBSET_40",
-                "trackingAdjust": 1,
+                "name": "FONT_DOMESTIC_BOLD_SUBSET_37",
                 "type": "font"
             },
             {
@@ -53,7 +52,7 @@
         "aplite",
         "basalt"
     ],
-    "uuid": "ebfdc529-cc04-4120-8d60-212988e99a14",
+    "uuid": "48eb8a14-ba93-45c1-87f6-ac117b4a23df",
     "versionCode": 1,
     "versionLabel": "2.0",
     "watchapp": {

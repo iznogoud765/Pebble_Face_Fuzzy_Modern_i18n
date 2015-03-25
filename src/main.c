@@ -35,6 +35,7 @@ static TextLine line3;
 //static TextLine topbar;
 //static TextLine bottombar;
 static TextLayer *batterylayer;
+static TextLayer *toplayer;
 static TextLayer *bottomlayer;
 static BitmapLayer *s_bt_bitmap_layer;
 static BitmapLayer *s_ch_bitmap_layer;
@@ -63,7 +64,7 @@ static void anim_stopped_handler(Animation *animation, bool finished, void *cont
   }
 }
 
-void updateLayer(TextLine *animating_line, char* old_line, char* new_line) {
+void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool isbold) {
   // animate out current layer
   GRect from_frame_out = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
   GRect to_frame_out = animating_line->out_rect;
@@ -93,12 +94,19 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line) {
   else if(animating_line->out_rect.origin.y==line2_y) line_no = 2;
   else if(animating_line->out_rect.origin.y==line3_y) line_no = 3;
   GSize size= graphics_text_layout_get_content_size(new_line,
-                                        (line_no == 1)?s_time_font_big:s_time_font,
+                                        isbold?s_time_font_big:s_time_font,
                                         GRect(0, 0, 200, animating_line->out_rect.size.h),
                                         GTextOverflowModeTrailingEllipsis,
                                         GTextAlignmentLeft);
   APP_LOG(APP_LOG_LEVEL_INFO , "line %d: old text '%s', new text '%s' size %d", line_no, old_line, new_line, size.w);
-
+/*
+  size= graphics_text_layout_get_content_size("quatre h.",
+                                        s_time_font_big,
+                                        GRect(0, 0, 200, animating_line->out_rect.size.h),
+                                        GTextOverflowModeTrailingEllipsis,
+                                        GTextAlignmentLeft);
+  APP_LOG(APP_LOG_LEVEL_INFO , "line 1: 'quatre h.' size %d", size.w);
+*/
   text_layer_set_text(animating_line->layer[0], old_line);
   text_layer_set_text(animating_line->layer[1], new_line);
 
@@ -112,11 +120,13 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line) {
   // Create the sequence
 //  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE , "before animation_sequence_create line %d", line_no);
   Animation *sequence = animation_sequence_create(animout, animin, NULL);
+/*
   animation_set_handlers(sequence, (AnimationHandlers) {
     .stopped = anim_stopped_handler
   }, NULL);
-  // Play the sequence
+*/
 //  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE , "before animation_schedule line %d", line_no);
+  // Play the sequence
   animation_schedule(sequence);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "after animation_schedule %p", sequence);
 #else
@@ -138,6 +148,9 @@ void update_watch(struct tm* t) {
   // Let's get the new text date
   info_lines(t, new_time.topline, new_time.bottomline);
 
+  // Let's update the top bar
+  text_layer_set_text(toplayer, new_time.topline);
+
   // Let's update the bottom bar
   text_layer_set_text(bottomlayer, new_time.bottomline);
 
@@ -149,11 +162,11 @@ void update_watch(struct tm* t) {
   text_layer_set_font(line3.layer[1], (hourline==3)?s_time_font_big:s_time_font);
 
   // update hour only if changed
-  if(strcmp(new_time.line1, cur_time.line1) != 0) updateLayer(&line1, cur_time.line1, new_time.line1);
+  if(strcmp(new_time.line1, cur_time.line1) != 0) updateLayer(&line1, cur_time.line1, new_time.line1, hourline==1);
   // update min1 only if changed
-  if(strcmp(new_time.line2, cur_time.line2) != 0) updateLayer(&line2, cur_time.line2, new_time.line2);
+  if(strcmp(new_time.line2, cur_time.line2) != 0) updateLayer(&line2, cur_time.line2, new_time.line2, hourline==2);
   // update min2 only if changed happens on
-  if(strcmp(new_time.line3, cur_time.line3) != 0) updateLayer(&line3, cur_time.line3, new_time.line3);
+  if(strcmp(new_time.line3, cur_time.line3) != 0) updateLayer(&line3, cur_time.line3, new_time.line3, hourline==3);
 
   // set cur_time
   cur_time = new_time;
@@ -190,7 +203,7 @@ static void bt_handler(bool connected) {
 }
 
 static void main_window_load(Window *window) {
-  // UUID : ebfdc529-cc04-4120-8d60-212988e99a14
+  // UUID : 48eb8a14-ba93-45c1-87f6-ac117b4a23df
   
   // locale
   setlocale(LC_ALL, i18n_get_system_locale());
@@ -204,7 +217,7 @@ static void main_window_load(Window *window) {
   
   // Load GFont
   s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_NORMAL_SUBSET_36));
-  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_40));
+  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_37));
   
   // Init the text layers used to show the time
 
@@ -235,7 +248,7 @@ static void main_window_load(Window *window) {
   line1.out_rect = GRect(-144, line1_y, 144, 60);
   
   // line2
-  line2.layer[0] = text_layer_create(GRect(0, line2_y, 144, 50));
+  line2.layer[0] = text_layer_create(GRect(0, line2_y, 144, 60));
   text_layer_set_background_color(line2.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line2.layer[0], GColorPastelYellow);
@@ -246,7 +259,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line2.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line2.layer[0], GTextOverflowModeWordWrap);
 
-  line2.layer[1] = text_layer_create(GRect(-144, line2_y, 144, 50));
+  line2.layer[1] = text_layer_create(GRect(-144, line2_y, 144, 60));
   text_layer_set_background_color(line2.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line2.layer[1], GColorYellow);
@@ -257,10 +270,10 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line2.layer[1], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line2.layer[1], GTextOverflowModeWordWrap);
 
-  line2.out_rect = GRect(144, line2_y, 144, 50);
+  line2.out_rect = GRect(144, line2_y, 144, 60);
 
   // line3
-  line3.layer[0] = text_layer_create(GRect(0, line3_y, 144, 50));
+  line3.layer[0] = text_layer_create(GRect(0, line3_y, 144, 60));
   text_layer_set_background_color(line3.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[0], GColorPastelYellow);
@@ -271,7 +284,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line3.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line3.layer[0], GTextOverflowModeWordWrap);
 
-  line3.layer[1] = text_layer_create(GRect(144, line3_y, 144, 50));
+  line3.layer[1] = text_layer_create(GRect(144, line3_y, 144, 60));
   text_layer_set_background_color(line3.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[1], GColorYellow);
@@ -282,10 +295,10 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line3.layer[1], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line3.layer[1], GTextOverflowModeWordWrap);
 
-  line3.out_rect = GRect(-144, line3_y, 144, 50);
+  line3.out_rect = GRect(-144, line3_y, 144, 60);
 
   // battery text
-  batterylayer = text_layer_create(GRect(0, -3, 33, 18));
+  batterylayer = text_layer_create(GRect(144-33, -3, 33, 18));
   text_layer_set_background_color(batterylayer, GColorClear);
   text_layer_set_font(batterylayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(batterylayer, GTextAlignmentRight);
@@ -297,7 +310,7 @@ static void main_window_load(Window *window) {
 
   // Create charging GBitmap, then set to created BitmapLayer
   s_bitmap_charging = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGING);
-  s_ch_bitmap_layer = bitmap_layer_create(GRect(35, 0, 30, 18));
+  s_ch_bitmap_layer = bitmap_layer_create(GRect(144-33-12-3, 0, 30, 18));
   bitmap_layer_set_background_color(s_ch_bitmap_layer, GColorClear); 
 #ifdef PBL_COLOR
   bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpSet);
@@ -308,9 +321,20 @@ static void main_window_load(Window *window) {
   layer_set_hidden ((Layer *)s_ch_bitmap_layer, true);
   bitmap_layer_set_bitmap(s_ch_bitmap_layer, s_bitmap_charging);
   
+  // top text
+  toplayer = text_layer_create(GRect(52, 0, 40, 18));
+#ifdef PBL_COLOR
+  text_layer_set_background_color(toplayer, GColorBlueMoon);
+  text_layer_set_text_color(toplayer, GColorIcterine);
+#else
+  text_layer_set_background_color(toplayer, GColorClear);
+  text_layer_set_text_color(toplayer, GColorWhite);
+#endif
+  text_layer_set_font(toplayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  text_layer_set_text_alignment(toplayer, GTextAlignmentCenter);
+  
   // bottom text
   bottomlayer = text_layer_create(GRect(0, 150, 144, 18));
-  text_layer_set_text_color(bottomlayer, GColorWhite);
 #ifdef PBL_COLOR
   text_layer_set_background_color(bottomlayer, GColorBlueMoon);
   text_layer_set_text_color(bottomlayer, GColorIcterine);
@@ -318,20 +342,20 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(bottomlayer, GColorClear);
   text_layer_set_text_color(bottomlayer, GColorWhite);
 #endif
-  text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(bottomlayer, GTextAlignmentCenter);
 
   // Create GBitmap, then set to created BitmapLayer
   s_bitmap_bt_on = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_ON);
   s_bitmap_bt_off = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_OFF);
-  s_bt_bitmap_layer = bitmap_layer_create(GRect(100, 0, 40, 22));
+  s_bt_bitmap_layer = bitmap_layer_create(GRect(0, 0, 15, 22));
   bitmap_layer_set_background_color(s_bt_bitmap_layer, GColorClear); 
 #ifdef PBL_COLOR
   bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpSet);
 #else
   bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpAssignInverted);
 #endif
-  bitmap_layer_set_alignment(s_bt_bitmap_layer, GAlignRight);
+//  bitmap_layer_set_alignment(s_bt_bitmap_layer, GAlignRight);
     
   // Ensures time is displayed immediately (will break if NULL tick event accessed).
   // (This is why it's a good idea to have a separate routine to do the update itself.)
@@ -352,6 +376,7 @@ static void main_window_load(Window *window) {
   layer_add_child(root_layer, text_layer_get_layer(line1.layer[0]));
   layer_add_child(root_layer, text_layer_get_layer(line1.layer[1]));
   layer_add_child(root_layer, text_layer_get_layer(batterylayer));
+  layer_add_child(root_layer, text_layer_get_layer(toplayer));
   layer_add_child(root_layer, text_layer_get_layer(bottomlayer));
   layer_add_child(root_layer, bitmap_layer_get_layer(s_bt_bitmap_layer));
   layer_add_child(root_layer, bitmap_layer_get_layer(s_ch_bitmap_layer));
@@ -366,6 +391,7 @@ static void main_window_unload(Window *window) {
   text_layer_destroy(line3.layer[0]);
   text_layer_destroy(line3.layer[1]);
   text_layer_destroy(batterylayer);
+  text_layer_destroy(toplayer);
   text_layer_destroy(bottomlayer);
 
   // Destroy BitmapLayer
