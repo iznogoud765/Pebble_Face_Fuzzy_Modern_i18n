@@ -43,9 +43,10 @@ static BitmapLayer *s_ch_bitmap_layer;
 static TheTime cur_time;
 static TheTime new_time;
 
-const int line1_y = 20;
+const int line1_y = 15;
 const int line2_y = 60;
 const int line3_y = 95;
+const int line_h = 55;
 
 
 static void anim_stopped_handler(Animation *animation, bool finished, void *context) {
@@ -173,23 +174,47 @@ void update_watch(struct tm* t) {
 }
 
 static void battery_handler(BatteryChargeState charge_state) {
-  static char s_battery_buffer[10];
+  GBitmap *bitmap_charge;
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE , "battery charge: %d%%", charge_state.charge_percent);
 
   if (charge_state.is_charging) {
-    layer_set_hidden ((Layer *)s_ch_bitmap_layer, false);
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGING);
   } 
-  else {
-    layer_set_hidden ((Layer *)s_ch_bitmap_layer, true);
+  else if(charge_state.charge_percent >= 95) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE100);
   }
-  snprintf(s_battery_buffer, sizeof(s_battery_buffer), "%d%%", charge_state.charge_percent);
-  text_layer_set_text(batterylayer, s_battery_buffer);
+  else if(charge_state.charge_percent >= 85) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE90);
+  }
+  else if(charge_state.charge_percent >= 75) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE80);
+  }
+  else if(charge_state.charge_percent >= 65) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE70);
+  }
+  else if(charge_state.charge_percent >= 55) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE60);
+  }
+  else if(charge_state.charge_percent >= 45) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE50);
+  }
+  else if(charge_state.charge_percent >= 35) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE40);
+  }
+  else if(charge_state.charge_percent >= 25) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE30);
+  }
+  else if(charge_state.charge_percent >= 15) {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE20);
+  }
+  else {
+    bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE10);
+  }
+  bitmap_layer_set_bitmap(s_ch_bitmap_layer, bitmap_charge);
 
-  GSize size= graphics_text_layout_get_content_size(s_battery_buffer,
-                                        fonts_get_system_font(FONT_KEY_GOTHIC_14),
-                                        GRect(0, 0, 100, 18),
-                                        GTextOverflowModeTrailingEllipsis,
-                                        GTextAlignmentRight);
-  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE , "battery text size: %d", size.w);
+  gbitmap_destroy(s_bitmap_charging);
+  s_bitmap_charging = bitmap_charge;
 }
 
 static void bt_handler(bool connected) {
@@ -216,13 +241,13 @@ static void main_window_load(Window *window) {
 #endif
   
   // Load GFont
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_NORMAL_SUBSET_36));
-  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_37));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_NORMAL_SUBSET_37));
+  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_44));
   
   // Init the text layers used to show the time
 
   // line1
-  line1.layer[0] = text_layer_create(GRect(0, line1_y, 144, 60));
+  line1.layer[0] = text_layer_create(GRect(0, line1_y, 144, line_h));
   text_layer_set_background_color(line1.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line1.layer[0], GColorPastelYellow);
@@ -234,7 +259,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line1.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line1.layer[0], GTextOverflowModeWordWrap);
 
-  line1.layer[1] = text_layer_create(GRect(144, line1_y, 144, 60));
+  line1.layer[1] = text_layer_create(GRect(144, line1_y, 144, line_h));
   text_layer_set_background_color(line1.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line1.layer[1], GColorYellow);
@@ -245,10 +270,10 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line1.layer[1], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line1.layer[1], GTextOverflowModeWordWrap);
 
-  line1.out_rect = GRect(-144, line1_y, 144, 60);
+  line1.out_rect = GRect(-144, line1_y, 144, line_h);
   
   // line2
-  line2.layer[0] = text_layer_create(GRect(0, line2_y, 144, 60));
+  line2.layer[0] = text_layer_create(GRect(0, line2_y, 144, line_h));
   text_layer_set_background_color(line2.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line2.layer[0], GColorPastelYellow);
@@ -259,7 +284,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line2.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line2.layer[0], GTextOverflowModeWordWrap);
 
-  line2.layer[1] = text_layer_create(GRect(-144, line2_y, 144, 60));
+  line2.layer[1] = text_layer_create(GRect(-144, line2_y, 144, line_h));
   text_layer_set_background_color(line2.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line2.layer[1], GColorYellow);
@@ -270,10 +295,10 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line2.layer[1], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line2.layer[1], GTextOverflowModeWordWrap);
 
-  line2.out_rect = GRect(144, line2_y, 144, 60);
+  line2.out_rect = GRect(144, line2_y, 144, line_h);
 
   // line3
-  line3.layer[0] = text_layer_create(GRect(0, line3_y, 144, 60));
+  line3.layer[0] = text_layer_create(GRect(0, line3_y, 144, line_h));
   text_layer_set_background_color(line3.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[0], GColorPastelYellow);
@@ -284,7 +309,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line3.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line3.layer[0], GTextOverflowModeWordWrap);
 
-  line3.layer[1] = text_layer_create(GRect(144, line3_y, 144, 60));
+  line3.layer[1] = text_layer_create(GRect(144, line3_y, 144, line_h));
   text_layer_set_background_color(line3.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[1], GColorYellow);
@@ -295,7 +320,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line3.layer[1], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line3.layer[1], GTextOverflowModeWordWrap);
 
-  line3.out_rect = GRect(-144, line3_y, 144, 60);
+  line3.out_rect = GRect(-144, line3_y, 144, line_h);
 
   // battery text
   batterylayer = text_layer_create(GRect(144-33, -3, 33, 18));
@@ -309,17 +334,17 @@ static void main_window_load(Window *window) {
 #endif
 
   // Create charging GBitmap, then set to created BitmapLayer
-  s_bitmap_charging = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGING);
-  s_ch_bitmap_layer = bitmap_layer_create(GRect(144-33-12-3, 0, 30, 18));
+  s_ch_bitmap_layer = bitmap_layer_create(GRect(144-21, 0, 20, 17));
   bitmap_layer_set_background_color(s_ch_bitmap_layer, GColorClear); 
 #ifdef PBL_COLOR
   bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpSet);
 #else
   bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpAssignInverted);
 #endif
-  bitmap_layer_set_alignment(s_ch_bitmap_layer, GAlignLeft);
-  layer_set_hidden ((Layer *)s_ch_bitmap_layer, true);
-  bitmap_layer_set_bitmap(s_ch_bitmap_layer, s_bitmap_charging);
+//  bitmap_layer_set_alignment(s_ch_bitmap_layer, GAlignLeft);
+//  layer_set_hidden ((Layer *)s_ch_bitmap_layer, true);
+  s_bitmap_charging = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE10);
+//  bitmap_layer_set_bitmap(s_ch_bitmap_layer, s_bitmap_charging);
   
   // top text
   toplayer = text_layer_create(GRect(52, 0, 40, 18));

@@ -9,8 +9,63 @@
     "resources": {
         "media": [
             {
+                "file": "images/charging.png",
+                "name": "IMAGE_CHARGING",
+                "type": "png"
+            },
+            {
+                "file": "images/charge100.png",
+                "name": "IMAGE_CHARGE100",
+                "type": "png"
+            },
+            {
+                "file": "images/charge90.png",
+                "name": "IMAGE_CHARGE90",
+                "type": "png"
+            },
+            {
+                "file": "images/charge80.png",
+                "name": "IMAGE_CHARGE80",
+                "type": "png"
+            },
+            {
+                "file": "images/charge70.png",
+                "name": "IMAGE_CHARGE70",
+                "type": "png"
+            },
+            {
+                "file": "images/charge60.png",
+                "name": "IMAGE_CHARGE60",
+                "type": "png"
+            },
+            {
+                "file": "images/charge50.png",
+                "name": "IMAGE_CHARGE50",
+                "type": "png"
+            },
+            {
+                "file": "images/charge40.png",
+                "name": "IMAGE_CHARGE40",
+                "type": "png"
+            },
+            {
+                "file": "images/charge30.png",
+                "name": "IMAGE_CHARGE30",
+                "type": "png"
+            },
+            {
+                "file": "images/charge20.png",
+                "name": "IMAGE_CHARGE20",
+                "type": "png"
+            },
+            {
+                "file": "images/charge10.png",
+                "name": "IMAGE_CHARGE10",
+                "type": "png"
+            },
+            {
                 "file": "fonts/Domestic_Manners-bold.ttf",
-                "name": "FONT_DOMESTIC_BOLD_SUBSET_37",
+                "name": "FONT_DOMESTIC_BOLD_SUBSET_44",
                 "type": "font"
             },
             {
@@ -26,13 +81,8 @@
             },
             {
                 "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_36",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_37",
                 "type": "font"
-            },
-            {
-                "file": "images/charging.png",
-                "name": "IMAGE_CHARGING",
-                "type": "png"
             },
             {
                 "file": "images/bt_on.png",
