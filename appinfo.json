@@ -65,7 +65,7 @@
             },
             {
                 "file": "fonts/Domestic_Manners-bold.ttf",
-                "name": "FONT_DOMESTIC_BOLD_SUBSET_44",
+                "name": "FONT_DOMESTIC_BOLD_SUBSET_40",
                 "type": "font"
             },
             {
@@ -76,12 +76,12 @@
             },
             {
                 "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_35",
                 "type": "font"
             },
             {
                 "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_37",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
                 "type": "font"
             },
             {

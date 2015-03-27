@@ -1,4 +1,8 @@
-#include "french_time.h"
+#include <pebble.h>
+#include "time_fr.h"
+#include "mini_printf.h"
+
+#define LINE_BUFFER_SIZE 50
 
 static const char* STR_HEURE = "heure";
 static const char* STR_H = " h.";

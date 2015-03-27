@@ -40,12 +40,13 @@ static TextLayer *bottomlayer;
 static BitmapLayer *s_bt_bitmap_layer;
 static BitmapLayer *s_ch_bitmap_layer;
 
+static struct tm *t;
 static TheTime cur_time;
 static TheTime new_time;
 
-const int line1_y = 15;
-const int line2_y = 60;
-const int line3_y = 95;
+const int line1_y = 17;
+const int line2_y = 57;
+const int line3_y = 93;
 const int line_h = 55;
 
 
@@ -231,7 +232,11 @@ static void main_window_load(Window *window) {
   // UUID : 48eb8a14-ba93-45c1-87f6-ac117b4a23df
   
   // locale
+#if DEBUG
+  setlocale(LC_ALL, "de_DE");
+#else
   setlocale(LC_ALL, i18n_get_system_locale());
+#endif
   
   // background color
 #ifdef PBL_COLOR
@@ -241,8 +246,8 @@ static void main_window_load(Window *window) {
 #endif
   
   // Load GFont
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_NORMAL_SUBSET_37));
-  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_44));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_NORMAL_SUBSET_35));
+  s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_40));
   
   // Init the text layers used to show the time
 
@@ -257,7 +262,7 @@ static void main_window_load(Window *window) {
 //  text_layer_set_font(line1.layer[0], fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
   text_layer_set_font(line1.layer[0], s_time_font);
   text_layer_set_text_alignment(line1.layer[0], GTextAlignmentLeft);
-//  text_layer_set_overflow_mode (line1.layer[0], GTextOverflowModeWordWrap);
+  text_layer_set_overflow_mode (line1.layer[0], GTextOverflowModeWordWrap);
 
   line1.layer[1] = text_layer_create(GRect(144, line1_y, 144, line_h));
   text_layer_set_background_color(line1.layer[1], GColorClear);
@@ -268,7 +273,7 @@ static void main_window_load(Window *window) {
 #endif
   text_layer_set_font(line1.layer[1], s_time_font);
   text_layer_set_text_alignment(line1.layer[1], GTextAlignmentLeft);
-//  text_layer_set_overflow_mode (line1.layer[1], GTextOverflowModeWordWrap);
+  text_layer_set_overflow_mode (line1.layer[1], GTextOverflowModeWordWrap);
 
   line1.out_rect = GRect(-144, line1_y, 144, line_h);
   
@@ -282,7 +287,7 @@ static void main_window_load(Window *window) {
 #endif
   text_layer_set_font(line2.layer[0], s_time_font);
   text_layer_set_text_alignment(line2.layer[0], GTextAlignmentLeft);
-//  text_layer_set_overflow_mode (line2.layer[0], GTextOverflowModeWordWrap);
+  text_layer_set_overflow_mode (line2.layer[0], GTextOverflowModeWordWrap);
 
   line2.layer[1] = text_layer_create(GRect(-144, line2_y, 144, line_h));
   text_layer_set_background_color(line2.layer[1], GColorClear);
@@ -293,12 +298,12 @@ static void main_window_load(Window *window) {
 #endif
   text_layer_set_font(line2.layer[1], s_time_font);
   text_layer_set_text_alignment(line2.layer[1], GTextAlignmentLeft);
-//  text_layer_set_overflow_mode (line2.layer[1], GTextOverflowModeWordWrap);
+  text_layer_set_overflow_mode (line2.layer[1], GTextOverflowModeWordWrap);
 
   line2.out_rect = GRect(144, line2_y, 144, line_h);
 
   // line3
-  line3.layer[0] = text_layer_create(GRect(0, line3_y, 144, line_h));
+  line3.layer[0] = text_layer_create(GRect(0, line3_y, 180, line_h));
   text_layer_set_background_color(line3.layer[0], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[0], GColorPastelYellow);
@@ -309,7 +314,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(line3.layer[0], GTextAlignmentLeft);
 //  text_layer_set_overflow_mode (line3.layer[0], GTextOverflowModeWordWrap);
 
-  line3.layer[1] = text_layer_create(GRect(144, line3_y, 144, line_h));
+  line3.layer[1] = text_layer_create(GRect(144, line3_y, 180, line_h));
   text_layer_set_background_color(line3.layer[1], GColorClear);
 #ifdef PBL_COLOR
   text_layer_set_text_color(line3.layer[1], GColorYellow);
@@ -347,7 +352,7 @@ static void main_window_load(Window *window) {
 //  bitmap_layer_set_bitmap(s_ch_bitmap_layer, s_bitmap_charging);
   
   // top text
-  toplayer = text_layer_create(GRect(52, 0, 40, 18));
+  toplayer = text_layer_create(GRect(40, 0, 144-40-40, 18));
 #ifdef PBL_COLOR
   text_layer_set_background_color(toplayer, GColorBlueMoon);
   text_layer_set_text_color(toplayer, GColorIcterine);
@@ -385,7 +390,7 @@ static void main_window_load(Window *window) {
   // Ensures time is displayed immediately (will break if NULL tick event accessed).
   // (This is why it's a good idea to have a separate routine to do the update itself.)
   time_t now = time(NULL);
-  struct tm *t = localtime(&now);
+  t = localtime(&now);
   update_watch(t);
   
   battery_handler(battery_state_service_peek());
@@ -440,6 +445,53 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_watch(tick_time);
 }
   
+/**
+ * Debug methods. For quickly debugging enable debug macro on top to transform the watchface into
+ * a standard app and you will be able to change the time with the up and down buttons
+ */
+#if DEBUG
+
+static void up_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+	(void)recognizer;
+	(void)context;
+	
+	t->tm_min -= 1;
+	if (t->tm_min < 0) {
+		t->tm_min += 60;
+		t->tm_hour -= 1;
+		
+		if (t->tm_hour < 0) {
+			t->tm_hour = 23;
+		}
+	}
+	update_watch(t);
+}
+
+
+static void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+  (void)recognizer;
+	(void)context;
+	
+	t->tm_min += 5;
+	if (t->tm_min >= 60) {
+		t->tm_min -= 60;
+		t->tm_hour += 1;
+		
+		if (t->tm_hour >= 24) {
+			t->tm_hour = 0;
+		}
+	}
+	update_watch(t);
+}
+
+static void click_config_provider(Window *window) {
+  (void)window;
+
+  window_single_click_subscribe(BUTTON_ID_UP, up_single_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, down_single_click_handler);
+}
+#endif
+
 static void init() {
   // Create main Window element and assign to pointer
   s_main_window = window_create();
@@ -449,16 +501,25 @@ static void init() {
     .load = main_window_load,
     .unload = main_window_unload
   });
-
+  
+  window_set_fullscreen(s_main_window, true);
+  
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
   
+#if DEBUG==0
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+#endif
   // Register with BatteryService
   battery_state_service_subscribe(battery_handler);
   // Register BluetoothService
   bluetooth_connection_service_subscribe(bt_handler);
+
+#if DEBUG
+	// Button functionality
+	window_set_click_config_provider(s_main_window, (ClickConfigProvider) click_config_provider);
+#endif
 }
 
 static void deinit() {
