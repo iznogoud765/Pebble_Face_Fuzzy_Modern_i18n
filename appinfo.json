@@ -1,7 +1,10 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "ALIGN_KEY": 1,
+        "BKGD_COLOR_KEY": 0
+    },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "Alec6",
     "longName": "FuzzyTime_Modern_i18n",
