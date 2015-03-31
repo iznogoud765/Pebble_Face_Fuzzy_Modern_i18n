@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fuzzy Time Modern</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+
+      <h2>Fuzzy Time Modern</h2>
+      
+      <form id="configure-form" class="form-configure well" action="#" method="POST">
+        <h4>Background Color</h4>
+        <p><small>Change the background color</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="BKGD_COLOR_KEY" id="BKGD_COLOR0" value="0"> Dark
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="BKGD_COLOR_KEY" id="BKGD_COLOR1" value="1"> Light
+          </label>
+        </div>
+        <hr />
+        <h4>Text Align</h4>
+        <p><small>Display Fuzzytime left,center or right aligned</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="ALIGN_KEY" id="ALIGN0" value="0"> Left
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="ALIGN_KEY" id="ALIGN1" value="1"> Center
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="ALIGN_KEY" id="ALIGN2" value="2"> Right
+          </label>
+        </div>
+        <hr />
+        <div class="clearfix">
+          <input class="btn btn-lg btn-primary btn-block" id="save" type="submit" value="Save"/>
+        </div>
+      </form>
+    </div>
+
+    <div class="footer container">
+      <p>Fuzzy Time Modern modified by Iznogoud. Original config page by orviwan</a></p>
+    </div>
+    
+    <script>
+      var mColor;
+      var mAlign;
+      
+      $().ready(function () {
+
+        mColor = parseInt(localStorage.getItem("BKGD_COLOR_KEY"));
+        mAlign = parseInt(localStorage.getItem("ALIGN_KEY"));
+
+        if(isNaN(mColor)) {
+          mColor = 0;
+        }
+        if(isNaN(mAlign)) {
+          mAlign = 0;
+        }                
+        
+        if(mColor) {
+          $('#BKGD_COLOR0').prop('checked', false);
+          $('#BKGD_COLOR0').parent().removeClass('active');
+          
+          $('#BKGD_COLOR1').prop('checked', true);
+          $('#BKGD_COLOR1').parent().addClass('active'); 
+        } 
+        else {
+          $('#BKGD_COLOR0').prop('checked', true);
+          $('#BKGD_COLOR0').parent().addClass('active');
+          
+          $('#BKGD_COLOR1').prop('checked', false);
+          $('#BKGD_COLOR1').parent().removeClass('active');
+        }
+                
+        
+        if(mAlign==0) {
+          $('#ALIGN0').prop('checked', true);
+          $('#ALIGN0').parent().addClass('active');
+          
+          $('#ALIGN1').prop('checked', false);
+          $('#ALIGN1').parent().removeClass('active');
+          
+          $('#ALIGN2').prop('checked', false);
+          $('#ALIGN2').parent().removeClass('active');
+        } 
+        else if(mAlign==1) {
+          $('#ALIGN0').prop('checked', false);
+          $('#ALIGN0').parent().removeClass('active');
+          
+          $('#ALIGN1').prop('checked', true);
+          $('#ALIGN1').parent().addClass('active'); 
+          
+          $('#ALIGN2').prop('checked', false);
+          $('#ALIGN2').parent().removeClass('active');
+        }
+        else {
+          $('#ALIGN0').prop('checked', false);
+          $('#ALIGN0').parent().removeClass('active');
+          
+          $('#ALIGN1').prop('checked', false);
+          $('#ALIGN1').parent().removeClass('active'); 
+          
+          $('#ALIGN2').prop('checked', true);
+          $('#ALIGN2').parent().addClass('active');
+        }
+      });
+
+      $("#configure-form").submit(function(e) {  
+
+        mColor = $('#BKGD_COLOR0').prop('checked') ? 0 : 1;
+        mAlign = $('#ALIGN0').prop('checked') ? 0 : ($('#ALIGN1').prop('checked') ? 1 : 2);
+
+        localStorage.setItem("BKGD_COLOR_KEY", mColor);  
+        localStorage.setItem("ALIGN_KEY", mAlign); 
+        
+        var j = {
+          KBackgroundColor : parseInt(mColor),
+          KAlign: parseInt(mAlign)
+        };
+        
+        location.href = "pebblejs://close#" + encodeURIComponent(JSON.stringify(j));
+		//document.location = location.href;
+        console.log("Submit" + location.href);
+
+        e.preventDefault();
+      });
+  </script>
+</body>
+</html>
