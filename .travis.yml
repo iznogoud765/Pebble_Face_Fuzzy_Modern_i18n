@@ -1,3 +1,5 @@
 language: c
+before_install:
+ - chmod +x tests/scripts/travis-install.sh
 install: ./tests/scripts/travis-install.sh
 script: make test
