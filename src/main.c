@@ -1,3 +1,4 @@
+// UUID : 48eb8a14-ba93-45c1-87f6-ac117b4a23df
 #include <pebble.h>
   
 #include "fuzzy_time.h"
@@ -25,18 +26,12 @@ typedef struct {
 } TextLine;
 
 typedef struct {
-  char line1[LINE_BUFFER_SIZE];
-  char line2[LINE_BUFFER_SIZE];
-  char line3[LINE_BUFFER_SIZE];
+  char line[3][LINE_BUFFER_SIZE];
   char topline[LINE_BUFFER_SIZE];
   char bottomline[LINE_BUFFER_SIZE];
 } TheTime;
 
-static TextLine line1;
-static TextLine line2;
-static TextLine line3;
-//static TextLine topbar;
-//static TextLine bottombar;
+static TextLine line[3];
 static TextLayer *batterylayer;
 static TextLayer *toplayer;
 static TextLayer *bottomlayer;
@@ -47,9 +42,10 @@ static struct tm *t;
 static TheTime cur_time;
 static TheTime new_time;
 
-const int line1_y = 17;
-const int line2_y = 57;
-const int line3_y = 93;
+const int line_y[] = {17, 57, 93};
+//const int line1_y = 17;
+//const int line2_y = 57;
+//const int line3_y = 93;
 const int line_h = 55;
 
 enum {
@@ -75,7 +71,7 @@ static GTextAlignment lookup_text_alignment(int align_key)
 		default:
 			alignment = GTextAlignmentLeft;
 			break;
-		case TEXT_ALIGN_LEFT:
+		case TEXT_ALIGN_CENTER:
 			alignment = GTextAlignmentCenter;
 			break;
 		case TEXT_ALIGN_RIGHT:
@@ -85,8 +81,9 @@ static GTextAlignment lookup_text_alignment(int align_key)
 	return alignment;
 }
 
+#ifndef PBL_PLATFORM_BASALT
 static void anim_stopped_handler(Animation *animation, bool finished, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "anim_stopped_handler %p", animation);  
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "anim_stopped_handler %p", animation);  
 #ifndef PBL_COLOR
   // Free the animation
   animation_destroy(animation);
@@ -94,56 +91,55 @@ static void anim_stopped_handler(Animation *animation, bool finished, void *cont
 
   // Schedule the next one, unless the app is exiting
   if (finished) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "anim_stopped_handler finished");  
+    APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "anim_stopped_handler finished");  
   }
   else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "anim_stopped_handler not finished");  
   }
 }
+#endif
 
 void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool isbold) {
   // animate out current layer
   GRect from_frame_out = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
   GRect to_frame_out = animating_line->out_rect;
   from_frame_out.origin.x = 0;
-  if(to_frame_out.origin.y == line2_y) 
+  
+  if(animating_line->out_rect.origin.x == 144) {
       to_frame_out.origin.x = 144;
-  else 
-    to_frame_out.origin.x = -144;
-
+  }
+  else {
+      to_frame_out.origin.x = -144;
+  }
+  
   // Create the animation
   animating_line->animate_out = property_animation_create_layer_frame(text_layer_get_layer(animating_line->layer[0]), &from_frame_out, &to_frame_out);
   
   // animate in current layer
   GRect from_frame_in = layer_get_frame(text_layer_get_layer(animating_line->layer[1]));
   GRect to_frame_in = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
-  if (from_frame_in.origin.y == line2_y) 
-    from_frame_in.origin.x = -144;
-  else 
-    from_frame_in.origin.x = 144;
+  if(animating_line->out_rect.origin.x == 144) {
+      from_frame_in.origin.x = -144;
+  }
+  else {
+      from_frame_in.origin.x = 144;
+  }
   to_frame_in.origin.x = 0;
 
   // Create the animation
   animating_line->animate_in = property_animation_create_layer_frame(text_layer_get_layer(animating_line->layer[1]), &from_frame_in, &to_frame_in);
   
   int line_no = 0;
-  if(animating_line->out_rect.origin.y==line1_y) line_no = 1;
-  else if(animating_line->out_rect.origin.y==line2_y) line_no = 2;
-  else if(animating_line->out_rect.origin.y==line3_y) line_no = 3;
+  if(animating_line->out_rect.origin.y==line_y[0]) line_no = 1;
+  else if(animating_line->out_rect.origin.y==line_y[1]) line_no = 2;
+  else if(animating_line->out_rect.origin.y==line_y[2]) line_no = 3;
   GSize size= graphics_text_layout_get_content_size(new_line,
                                         isbold?s_time_font_big:s_time_font,
                                         GRect(0, 0, 200, animating_line->out_rect.size.h),
                                         GTextOverflowModeTrailingEllipsis,
                                         GTextAlignmentLeft);
   APP_LOG(APP_LOG_LEVEL_INFO , "line %d: old text '%s', new text '%s' size %d", line_no, old_line, new_line, size.w);
-/*
-  size= graphics_text_layout_get_content_size("quatre h.",
-                                        s_time_font_big,
-                                        GRect(0, 0, 200, animating_line->out_rect.size.h),
-                                        GTextOverflowModeTrailingEllipsis,
-                                        GTextAlignmentLeft);
-  APP_LOG(APP_LOG_LEVEL_INFO , "line 1: 'quatre h.' size %d", size.w);
-*/
+
   text_layer_set_text(animating_line->layer[0], old_line);
   text_layer_set_text(animating_line->layer[1], new_line);
 
@@ -152,6 +148,9 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   // animation duration
   animation_set_duration(animout, ANIMATION_DURATION);
   animation_set_duration(animin, ANIMATION_DURATION);
+  // animation curves
+  animation_set_curve(animout, AnimationCurveEaseIn);
+  animation_set_curve(animin, AnimationCurveEaseOut);
   // Schedule to occur ASAP with default settings
 #ifdef PBL_COLOR
   // Create the sequence
@@ -167,8 +166,7 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   animation_schedule(sequence);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "after animation_schedule %p", sequence);
 #else
-  animation_set_curve(animout, AnimationCurveEaseIn);
-  animation_set_curve(animin, AnimationCurveEaseOut);
+  animation_set_delay(animin, 500);
   animation_set_handlers(animout, (AnimationHandlers) {
     .stopped = anim_stopped_handler
   }, NULL);
@@ -182,6 +180,8 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
 }
 
 void update_watch(struct tm* t) {
+  int i;
+  
   // Let's get the new text date
   info_lines(t, new_time.topline, new_time.bottomline);
 
@@ -192,18 +192,13 @@ void update_watch(struct tm* t) {
   text_layer_set_text(bottomlayer, new_time.bottomline);
 
   // Let's get the new text time
-  int hourline = fuzzy_time(t, new_time.line1, new_time.line2, new_time.line3);
-
-  text_layer_set_font(line1.layer[1], (hourline==1)?s_time_font_big:s_time_font);
-  text_layer_set_font(line2.layer[1], (hourline==2)?s_time_font_big:s_time_font);
-  text_layer_set_font(line3.layer[1], (hourline==3)?s_time_font_big:s_time_font);
+  int hourline = fuzzy_time(t, new_time.line[0], new_time.line[1], new_time.line[2]);
 
   // update hour only if changed
-  if(strcmp(new_time.line1, cur_time.line1) != 0) updateLayer(&line1, cur_time.line1, new_time.line1, hourline==1);
-  // update min1 only if changed
-  if(strcmp(new_time.line2, cur_time.line2) != 0) updateLayer(&line2, cur_time.line2, new_time.line2, hourline==2);
-  // update min2 only if changed happens on
-  if(strcmp(new_time.line3, cur_time.line3) != 0) updateLayer(&line3, cur_time.line3, new_time.line3, hourline==3);
+  for(i=0; i<3; i++) {
+    text_layer_set_font(line[i].layer[1], (hourline==i+1)?s_time_font_big:s_time_font);
+    if(strcmp(new_time.line[i], cur_time.line[i]) != 0) updateLayer(&line[i], cur_time.line[i], new_time.line[i], hourline==i+1);
+  }
 
   // set cur_time
   cur_time = new_time;
@@ -264,16 +259,16 @@ static void bt_handler(bool connected) {
 }
 
 void change_background(bool param) {
+  int i;
+
   // background color
 #ifdef PBL_COLOR
   if(param) {
     window_set_background_color(s_main_window, GColorBlue);
-    text_layer_set_text_color(line1.layer[0], GColorPastelYellow);
-    text_layer_set_text_color(line1.layer[1], GColorYellow);
-    text_layer_set_text_color(line2.layer[0], GColorPastelYellow);
-    text_layer_set_text_color(line2.layer[1], GColorYellow);
-    text_layer_set_text_color(line3.layer[0], GColorPastelYellow);
-    text_layer_set_text_color(line3.layer[1], GColorYellow);
+    for(i=0; i<3; i++) {
+      text_layer_set_text_color(line[i].layer[0], GColorPastelYellow);
+      text_layer_set_text_color(line[i].layer[1], GColorYellow);
+    }
     text_layer_set_background_color(toplayer, GColorBlueMoon);
     text_layer_set_text_color(toplayer, GColorIcterine);
     text_layer_set_background_color(bottomlayer, GColorBlueMoon);
@@ -281,12 +276,10 @@ void change_background(bool param) {
   }
   else {
     window_set_background_color(s_main_window, GColorCeleste);
-    text_layer_set_text_color(line1.layer[0], GColorCobaltBlue);
-    text_layer_set_text_color(line1.layer[1], GColorBlue);
-    text_layer_set_text_color(line2.layer[0], GColorCobaltBlue);
-    text_layer_set_text_color(line2.layer[1], GColorBlue);
-    text_layer_set_text_color(line3.layer[0], GColorCobaltBlue);
-    text_layer_set_text_color(line3.layer[1], GColorBlue);
+    for(i=0; i<3; i++) {
+      text_layer_set_text_color(line[i].layer[0], GColorCobaltBlue);
+      text_layer_set_text_color(line[i].layer[1], GColorBlue);
+    }
     text_layer_set_background_color(toplayer, GColorPictonBlue);
     text_layer_set_text_color(toplayer, GColorWhite);
     text_layer_set_background_color(bottomlayer, GColorPictonBlue);
@@ -297,12 +290,10 @@ void change_background(bool param) {
 #else
   if(param) {
     window_set_background_color(s_main_window, GColorBlack);
-    text_layer_set_text_color(line1.layer[0], GColorWhite);
-    text_layer_set_text_color(line1.layer[1], GColorWhite);
-    text_layer_set_text_color(line2.layer[0], GColorWhite);
-    text_layer_set_text_color(line2.layer[1], GColorWhite);
-    text_layer_set_text_color(line3.layer[0], GColorWhite);
-    text_layer_set_text_color(line3.layer[1], GColorWhite);
+    for(i=0; i<3; i++) {
+      text_layer_set_text_color(line[i].layer[0], GColorWhite);
+      text_layer_set_text_color(line[i].layer[1], GColorWhite);
+    }
     text_layer_set_background_color(toplayer, GColorClear);
     text_layer_set_text_color(toplayer, GColorWhite);
     text_layer_set_background_color(bottomlayer, GColorClear);
@@ -312,12 +303,10 @@ void change_background(bool param) {
   }
   else {
     window_set_background_color(s_main_window, GColorWhite);
-    text_layer_set_text_color(line1.layer[0], GColorBlack);
-    text_layer_set_text_color(line1.layer[1], GColorBlack);
-    text_layer_set_text_color(line2.layer[0], GColorBlack);
-    text_layer_set_text_color(line2.layer[1], GColorBlack);
-    text_layer_set_text_color(line3.layer[0], GColorBlack);
-    text_layer_set_text_color(line3.layer[1], GColorBlack);
+    for(i=0; i<3; i++) {
+      text_layer_set_text_color(line[i].layer[0], GColorBlack);
+      text_layer_set_text_color(line[i].layer[1], GColorBlack);
+    }
     text_layer_set_background_color(toplayer, GColorClear);
     text_layer_set_text_color(toplayer, GColorBlack);
     text_layer_set_background_color(bottomlayer, GColorClear);
@@ -329,41 +318,20 @@ void change_background(bool param) {
 }
 
 void change_align(int param) {
-  switch(param) {
-    default:
-      text_layer_set_text_alignment(line1.layer[0], GTextAlignmentLeft);
-      text_layer_set_text_alignment(line1.layer[1], GTextAlignmentLeft);
-      text_layer_set_text_alignment(line2.layer[0], GTextAlignmentLeft);
-      text_layer_set_text_alignment(line2.layer[1], GTextAlignmentLeft);
-      text_layer_set_text_alignment(line3.layer[0], GTextAlignmentLeft);
-      text_layer_set_text_alignment(line3.layer[1], GTextAlignmentLeft);
-      break;
-    
-    case 1:
-      text_layer_set_text_alignment(line1.layer[0], GTextAlignmentCenter);
-      text_layer_set_text_alignment(line1.layer[1], GTextAlignmentCenter);
-      text_layer_set_text_alignment(line2.layer[0], GTextAlignmentCenter);
-      text_layer_set_text_alignment(line2.layer[1], GTextAlignmentCenter);
-      text_layer_set_text_alignment(line3.layer[0], GTextAlignmentCenter);
-      text_layer_set_text_alignment(line3.layer[1], GTextAlignmentCenter);
-      break;
-
-    case 2:
-      text_layer_set_text_alignment(line1.layer[0], GTextAlignmentRight);
-      text_layer_set_text_alignment(line1.layer[1], GTextAlignmentRight);
-      text_layer_set_text_alignment(line2.layer[0], GTextAlignmentRight);
-      text_layer_set_text_alignment(line2.layer[1], GTextAlignmentRight);
-      text_layer_set_text_alignment(line3.layer[0], GTextAlignmentRight);
-      text_layer_set_text_alignment(line3.layer[1], GTextAlignmentRight);
-      break;
+  GTextAlignment align = lookup_text_alignment(param);
+  for(int i=0; i<3; i++) {
+    for(int j=0; j<2; j++) {
+      text_layer_set_text_alignment(line[i].layer[j], align);
+    }
   }
 }
 
 static void main_window_load(Window *window) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Fuzzy Modern main_window_load");
-  // UUID : 48eb8a14-ba93-45c1-87f6-ac117b4a23df
+  int i,j;
   Layer *root_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_frame(root_layer);
+  
+  APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Fuzzy Modern main_window_load");
   
   // locale
 #if DEBUG
@@ -384,95 +352,16 @@ static void main_window_load(Window *window) {
   s_time_font_big = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DOMESTIC_BOLD_SUBSET_40));
   
   // Init the text layers used to show the time
-
-  // line1
-  line1.layer[0] = text_layer_create(GRect(0, line1_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line1.layer[0], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line1.layer[0], GColorPastelYellow);
-#else
-  text_layer_set_text_color(line1.layer[0], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line1.layer[0], GTextAlignmentLeft);
-*/
-//  text_layer_set_font(line1.layer[0], fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
-  text_layer_set_font(line1.layer[0], s_time_font);
-  text_layer_set_overflow_mode (line1.layer[0], GTextOverflowModeWordWrap);
-
-  line1.layer[1] = text_layer_create(GRect(144, line1_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line1.layer[1], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line1.layer[1], GColorYellow);
-#else
-  text_layer_set_text_color(line1.layer[1], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line1.layer[1], GTextAlignmentLeft);
-*/
-  text_layer_set_font(line1.layer[1], s_time_font);
-  text_layer_set_overflow_mode (line1.layer[1], GTextOverflowModeWordWrap);
-
-  line1.out_rect = GRect(-144, line1_y, bounds.size.w, line_h);
+  for(i=0; i<3; i++) {
+    for(j=0; j<2; j++) {
+      line[i].layer[j] = text_layer_create(GRect(j==0?0:i%2==1?-144:144, line_y[i], bounds.size.w, line_h));
+      text_layer_set_background_color(line[i].layer[j], GColorClear);
+      text_layer_set_font(line[i].layer[j], s_time_font);
+      text_layer_set_overflow_mode(line[i].layer[j], GTextOverflowModeWordWrap);
+    }
+    line[i].out_rect = GRect(i%2==1?144:-144, line_y[i], bounds.size.w, line_h);
+  }
   
-  // line2
-  line2.layer[0] = text_layer_create(GRect(0, line2_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line2.layer[0], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line2.layer[0], GColorPastelYellow);
-#else
-  text_layer_set_text_color(line2.layer[0], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line2.layer[0], GTextAlignmentLeft);
-*/
-  text_layer_set_font(line2.layer[0], s_time_font);
-  text_layer_set_overflow_mode (line2.layer[0], GTextOverflowModeWordWrap);
-
-  line2.layer[1] = text_layer_create(GRect(-144, line2_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line2.layer[1], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line2.layer[1], GColorYellow);
-#else
-  text_layer_set_text_color(line2.layer[1], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line2.layer[1], GTextAlignmentLeft);
-*/
-  text_layer_set_font(line2.layer[1], s_time_font);
-  text_layer_set_overflow_mode (line2.layer[1], GTextOverflowModeWordWrap);
-
-  line2.out_rect = GRect(144, line2_y, bounds.size.w, line_h);
-
-  // line3
-  line3.layer[0] = text_layer_create(GRect(0, line3_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line3.layer[0], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line3.layer[0], GColorPastelYellow);
-#else
-  text_layer_set_text_color(line3.layer[0], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line3.layer[0], GTextAlignmentLeft);
-*/
-  text_layer_set_font(line3.layer[0], s_time_font);
-//  text_layer_set_overflow_mode (line3.layer[0], GTextOverflowModeWordWrap);
-
-  line3.layer[1] = text_layer_create(GRect(144, line3_y, bounds.size.w, line_h));
-  text_layer_set_background_color(line3.layer[1], GColorClear);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(line3.layer[1], GColorYellow);
-#else
-  text_layer_set_text_color(line3.layer[1], GColorWhite);
-#endif
-  text_layer_set_text_alignment(line3.layer[1], GTextAlignmentLeft);
-*/
-  text_layer_set_font(line3.layer[1], s_time_font);
-//  text_layer_set_overflow_mode (line3.layer[1], GTextOverflowModeWordWrap);
-
-  line3.out_rect = GRect(-144, line3_y, bounds.size.w, line_h);
-
   // top text
   int topwidth = 0;
   if(clock_is_24h_style() == true) {
@@ -481,30 +370,12 @@ static void main_window_load(Window *window) {
     topwidth = 60;
   }
   //  toplayer = text_layer_create(GRect(30, 0, bounds.size.w-2*30, 18));
-  toplayer = text_layer_create(GRect((bounds.size.w-topwidth)/2, 0, topwidth, 18));
-/*
-#ifdef PBL_COLOR
-  text_layer_set_background_color(toplayer, GColorBlueMoon);
-  text_layer_set_text_color(toplayer, GColorIcterine);
-#else
-  text_layer_set_background_color(toplayer, GColorClear);
-  text_layer_set_text_color(toplayer, GColorWhite);
-#endif
-*/
+  toplayer = text_layer_create(GRect((bounds.size.w-topwidth)/2, -2, topwidth, 18));
   text_layer_set_text_alignment(toplayer, GTextAlignmentCenter);
   text_layer_set_font(toplayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   
   // bottom text
-  bottomlayer = text_layer_create(GRect(0, bounds.size.h-18, bounds.size.w, 18));
-/*
-#ifdef PBL_COLOR
-  text_layer_set_background_color(bottomlayer, GColorBlueMoon);
-  text_layer_set_text_color(bottomlayer, GColorIcterine);
-#else
-  text_layer_set_background_color(bottomlayer, GColorClear);
-  text_layer_set_text_color(bottomlayer, GColorWhite);
-#endif
-*/
+  bottomlayer = text_layer_create(GRect(0, bounds.size.h-22, bounds.size.w, 22));
   text_layer_set_text_alignment(bottomlayer, GTextAlignmentCenter);
   text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
@@ -513,42 +384,16 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(batterylayer, GColorClear);
   text_layer_set_font(batterylayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(batterylayer, GTextAlignmentRight);
-/*
-#ifdef PBL_COLOR
-  text_layer_set_text_color(batterylayer, GColorYellow);
-#else
-  text_layer_set_text_color(batterylayer, GColorWhite);
-#endif
-*/
   
   // Create charging GBitmap, then set to created BitmapLayer
   s_ch_bitmap_layer = bitmap_layer_create(GRect(bounds.size.w-21, 0, 20, 17));
   bitmap_layer_set_background_color(s_ch_bitmap_layer, GColorClear); 
-/*
-#ifdef PBL_COLOR
-  bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpSet);
-#else
-  bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpAssignInverted);
-#endif
-*/
-//  bitmap_layer_set_alignment(s_ch_bitmap_layer, GAlignLeft);
-//  layer_set_hidden ((Layer *)s_ch_bitmap_layer, true);
   s_bitmap_charging = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE10);
-//  bitmap_layer_set_bitmap(s_ch_bitmap_layer, s_bitmap_charging);
   
-  // Create GBitmap, then set to created BitmapLayer
+  // Create bluetooth GBitmap, then set to created BitmapLayer
   s_bitmap_bt_on = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_ON);
   s_bitmap_bt_off = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_OFF);
   s_bt_bitmap_layer = bitmap_layer_create(GRect(0, 0, 15, 22));
-/*
-  bitmap_layer_set_background_color(s_bt_bitmap_layer, GColorClear); 
-#ifdef PBL_COLOR
-  bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpSet);
-#else
-  bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpAssignInverted);
-#endif
-*/
-//  bitmap_layer_set_alignment(s_bt_bitmap_layer, GAlignRight);
     
   // apply settings
   change_background(isBkgdDark);
@@ -564,12 +409,11 @@ static void main_window_load(Window *window) {
   
   bt_handler(bluetooth_connection_service_peek());
 
-  layer_add_child(root_layer, text_layer_get_layer(line3.layer[0]));
-  layer_add_child(root_layer, text_layer_get_layer(line3.layer[1]));
-  layer_add_child(root_layer, text_layer_get_layer(line2.layer[0]));
-  layer_add_child(root_layer, text_layer_get_layer(line2.layer[1]));
-  layer_add_child(root_layer, text_layer_get_layer(line1.layer[0]));
-  layer_add_child(root_layer, text_layer_get_layer(line1.layer[1]));
+  for(i=0; i<3; i++) {
+    for(j=0; j<2; j++) {
+      layer_add_child(root_layer, text_layer_get_layer(line[i].layer[j]));
+    }
+  }
   layer_add_child(root_layer, text_layer_get_layer(batterylayer));
   layer_add_child(root_layer, text_layer_get_layer(toplayer));
   layer_add_child(root_layer, text_layer_get_layer(bottomlayer));
@@ -579,12 +423,11 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
   // Destroy TextLayers
-  text_layer_destroy(line1.layer[0]);
-  text_layer_destroy(line1.layer[1]);
-  text_layer_destroy(line2.layer[0]);
-  text_layer_destroy(line2.layer[1]);
-  text_layer_destroy(line3.layer[0]);
-  text_layer_destroy(line3.layer[1]);
+  for(int i=0; i<3; i++) {
+    for(int j=0; j<2; j++) {
+      text_layer_destroy(line[i].layer[j]);
+    }
+  }
   text_layer_destroy(batterylayer);
   text_layer_destroy(toplayer);
   text_layer_destroy(bottomlayer);
