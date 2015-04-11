@@ -6,8 +6,6 @@
 #include "time_es.h"
 
 
-#define LINE_BUFFER_SIZE 50
-
 
 int fuzzy_time(struct tm* t, char* line1, char* line2, char* line3) {
   int ret = 1;
@@ -58,7 +56,7 @@ void info_lines(struct tm* t, char* line1, char* line2) {
   // Write the current date into the buffer
   strftime(line2, LINE_BUFFER_SIZE, "%A %e %B", t);
   
-  char buf[LINE_BUFFER_SIZE];
-  strftime(buf, LINE_BUFFER_SIZE, "%c", t);
+  char buf[2*LINE_BUFFER_SIZE];
+  strftime(buf, 2*LINE_BUFFER_SIZE, "%c", t);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "date: %s", buf);
 }

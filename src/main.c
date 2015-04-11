@@ -32,7 +32,6 @@ typedef struct {
 } TheTime;
 
 static TextLine line[3];
-static TextLayer *batterylayer;
 static TextLayer *toplayer;
 static TextLayer *bottomlayer;
 static BitmapLayer *s_bt_bitmap_layer;
@@ -50,7 +49,8 @@ const int line_h = 55;
 
 enum {
   KEY_BCKGD_COLOR = 0,
-  KEY_ALIGN = 1
+  KEY_ALIGN = 1,
+  KEY_DATETIME = 2
 };
 
 enum {
@@ -59,9 +59,9 @@ enum {
   TEXT_ALIGN_RIGHT
 };
 
-static int text_align = TEXT_ALIGN_LEFT;
 static bool isBkgdDark = true;
-
+static int text_align = TEXT_ALIGN_LEFT;
+static int datetime_bits = 0;
 
 static GTextAlignment lookup_text_alignment(int align_key)
 {
@@ -326,6 +326,11 @@ void change_align(int param) {
   }
 }
 
+void change_text_visibility(int param) {
+  layer_set_hidden(text_layer_get_layer(toplayer), param&0x01);
+  layer_set_hidden(text_layer_get_layer(bottomlayer), param&0x02);
+}
+
 static void main_window_load(Window *window) {
   int i,j;
   Layer *root_layer = window_get_root_layer(window);
@@ -379,12 +384,6 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(bottomlayer, GTextAlignmentCenter);
   text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
-  // battery text
-  batterylayer = text_layer_create(GRect(bounds.size.w-33, -3, 33, 18));
-  text_layer_set_background_color(batterylayer, GColorClear);
-  text_layer_set_font(batterylayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-  text_layer_set_text_alignment(batterylayer, GTextAlignmentRight);
-  
   // Create charging GBitmap, then set to created BitmapLayer
   s_ch_bitmap_layer = bitmap_layer_create(GRect(bounds.size.w-21, 0, 20, 17));
   bitmap_layer_set_background_color(s_ch_bitmap_layer, GColorClear); 
@@ -398,6 +397,7 @@ static void main_window_load(Window *window) {
   // apply settings
   change_background(isBkgdDark);
   change_align(text_align);
+  change_text_visibility(datetime_bits);
   
   // Ensures time is displayed immediately (will break if NULL tick event accessed).
   // (This is why it's a good idea to have a separate routine to do the update itself.)
@@ -414,7 +414,6 @@ static void main_window_load(Window *window) {
       layer_add_child(root_layer, text_layer_get_layer(line[i].layer[j]));
     }
   }
-  layer_add_child(root_layer, text_layer_get_layer(batterylayer));
   layer_add_child(root_layer, text_layer_get_layer(toplayer));
   layer_add_child(root_layer, text_layer_get_layer(bottomlayer));
   layer_add_child(root_layer, bitmap_layer_get_layer(s_bt_bitmap_layer));
@@ -428,7 +427,6 @@ static void main_window_unload(Window *window) {
       text_layer_destroy(line[i].layer[j]);
     }
   }
-  text_layer_destroy(batterylayer);
   text_layer_destroy(toplayer);
   text_layer_destroy(bottomlayer);
 
@@ -524,6 +522,13 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   }
 }
 
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+  if(axis != ACCEL_AXIS_X) {
+    datetime_bits++;
+    change_text_visibility(datetime_bits);
+  }
+}
+
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
   // An error occured!
   APP_LOG(APP_LOG_LEVEL_ERROR, "sync error!");
@@ -541,6 +546,11 @@ static void init() {
 	{
 		text_align = persist_read_int(KEY_ALIGN);
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read text alignment from storage: %u", text_align);
+	}
+	if (persist_exists(KEY_DATETIME))
+	{
+		datetime_bits = persist_read_int(KEY_DATETIME);
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read text visible bits: %x", datetime_bits);
 	}
   
   // Create main Window element and assign to pointer
@@ -568,6 +578,9 @@ static void init() {
   // Register BluetoothService
   bluetooth_connection_service_subscribe(bt_handler);
 
+  // Subscribe to the accelerometer tap service
+  accel_tap_service_subscribe(tap_handler);
+
 #if DEBUG
 	// Button functionality
 	window_set_click_config_provider(s_main_window, (ClickConfigProvider) click_config_provider);
@@ -592,6 +605,8 @@ static void deinit() {
 
   // Finish using AppSync
   app_sync_deinit(&s_sync);
+  // Finish tap service
+  accel_tap_service_unsubscribe();
 }
 
 int main(void) {
