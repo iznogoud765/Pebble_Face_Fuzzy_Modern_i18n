@@ -106,10 +106,11 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   from_frame_out.origin.x = 0;
   
   if(animating_line->out_rect.origin.x == 144) {
-      to_frame_out.origin.x = 144;
+    to_frame_out.origin.x = 144;
   }
   else {
-      to_frame_out.origin.x = -144;
+    to_frame_out.origin.x = -144;
+    to_frame_out.origin.y = line_y[1];
   }
   
   // Create the animation
@@ -118,11 +119,17 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   // animate in current layer
   GRect from_frame_in = layer_get_frame(text_layer_get_layer(animating_line->layer[1]));
   GRect to_frame_in = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
+  to_frame_in.origin.y = animating_line->out_rect.origin.y;
+
   if(animating_line->out_rect.origin.x == 144) {
-      from_frame_in.origin.x = -144;
+    from_frame_in.origin.x = -144;
   }
   else {
-      from_frame_in.origin.x = 144;
+    from_frame_in.origin.x = 144;
+    if(animating_line->out_rect.origin.y==line_y[0])
+      from_frame_in.origin.y = line_y[0]-animating_line->out_rect.size.h;
+    else
+      from_frame_in.origin.y = line_y[2]+animating_line->out_rect.size.h;
   }
   to_frame_in.origin.x = 0;
 
@@ -166,7 +173,7 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   animation_schedule(sequence);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "after animation_schedule %p", sequence);
 #else
-  animation_set_delay(animin, 500);
+  animation_set_delay(animin, ANIMATION_DURATION);
   animation_set_handlers(animout, (AnimationHandlers) {
     .stopped = anim_stopped_handler
   }, NULL);
@@ -206,11 +213,14 @@ void update_watch(struct tm* t) {
 
 static void battery_handler(BatteryChargeState charge_state) {
   GBitmap *bitmap_charge;
+  static char s_battery_buffer[10];
 
   APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE , "battery charge: %d%%", charge_state.charge_percent);
 
   if (charge_state.is_charging) {
     bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGING);
+    snprintf(s_battery_buffer, sizeof(s_battery_buffer), "%d%%", charge_state.charge_percent);
+    text_layer_set_text(batterylayer, s_battery_buffer);
   } 
   else if(charge_state.charge_percent >= 95) {
     bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE100);
@@ -243,6 +253,7 @@ static void battery_handler(BatteryChargeState charge_state) {
     bitmap_charge = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE10);
   }
   bitmap_layer_set_bitmap(s_ch_bitmap_layer, bitmap_charge);
+  layer_set_hidden (text_layer_get_layer(batterylayer), !(charge_state.is_charging));
 
   gbitmap_destroy(s_bitmap_charging);
   s_bitmap_charging = bitmap_charge;
@@ -300,6 +311,8 @@ void change_background(bool param) {
     text_layer_set_text_color(bottomlayer, GColorWhite);
     bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpAssignInverted);
     bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpAssignInverted);
+    text_layer_set_background_color(batterylayer, GColorClear);
+    text_layer_set_text_color(batterylayer, GColorWhite);
   }
   else {
     window_set_background_color(s_main_window, GColorWhite);
@@ -313,6 +326,8 @@ void change_background(bool param) {
     text_layer_set_text_color(bottomlayer, GColorBlack);
     bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpAssign);
     bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpAssign);
+    text_layer_set_background_color(batterylayer, GColorClear);
+    text_layer_set_text_color(batterylayer, GColorBlack);
   }
 #endif
 }
@@ -380,7 +395,7 @@ static void main_window_load(Window *window) {
   text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
   // battery text
-  batterylayer = text_layer_create(GRect(bounds.size.w-33, -3, 33, 18));
+  batterylayer = text_layer_create(GRect(bounds.size.w-21-33, -3, 33, 18));
   text_layer_set_background_color(batterylayer, GColorClear);
   text_layer_set_font(batterylayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(batterylayer, GTextAlignmentRight);

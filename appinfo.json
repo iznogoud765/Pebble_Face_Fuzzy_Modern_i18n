@@ -6,7 +6,7 @@
     "capabilities": [
         "configurable"
     ],
-    "companyName": "Alec6",
+    "companyName": "Iznogoud",
     "longName": "FuzzyTime_Modern_i18n",
     "projectType": "native",
     "resources": {
@@ -14,11 +14,6 @@
             {
                 "file": "images/charging.png",
                 "name": "IMAGE_CHARGING",
-                "type": "png"
-            },
-            {
-                "file": "images/charge100.png",
-                "name": "IMAGE_CHARGE100",
                 "type": "png"
             },
             {
@@ -67,25 +62,9 @@
                 "type": "png"
             },
             {
-                "file": "fonts/Domestic_Manners-bold.ttf",
-                "name": "FONT_DOMESTIC_BOLD_SUBSET_40",
-                "type": "font"
-            },
-            {
-                "file": "images/menu_icon.png",
-                "menuIcon": true,
-                "name": "IMAGE_MENU_ICON",
+                "file": "images/charge100.png",
+                "name": "IMAGE_CHARGE100",
                 "type": "png"
-            },
-            {
-                "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_35",
-                "type": "font"
-            },
-            {
-                "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
-                "type": "font"
             },
             {
                 "file": "images/bt_on.png",
@@ -96,6 +75,27 @@
                 "file": "images/bt_off.png",
                 "name": "IMAGE_BLUETOOTH_OFF",
                 "type": "png"
+            },
+            {
+                "file": "images/menu_icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            },
+            {
+                "file": "fonts/Domestic_Manners.ttf",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
+                "type": "font"
+            },
+            {
+                "file": "fonts/Domestic_Manners.ttf",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_35",
+                "type": "font"
+            },
+            {
+                "file": "fonts/Domestic_Manners-bold.ttf",
+                "name": "FONT_DOMESTIC_BOLD_SUBSET_40",
+                "type": "font"
             }
         ]
     },
@@ -107,7 +107,7 @@
     ],
     "uuid": "48eb8a14-ba93-45c1-87f6-ac117b4a23df",
     "versionCode": 1,
-    "versionLabel": "2.0",
+    "versionLabel": "2.1",
     "watchapp": {
         "watchface": true
     }

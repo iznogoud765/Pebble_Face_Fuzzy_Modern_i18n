@@ -57,8 +57,9 @@ void info_lines(struct tm* t, char* line1, char* line2) {
   
   // Write the current date into the buffer
   strftime(line2, LINE_BUFFER_SIZE, "%A %e %B", t);
-  
+/*  
   char buf[LINE_BUFFER_SIZE];
   strftime(buf, LINE_BUFFER_SIZE, "%c", t);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "date: %s", buf);
+*/
 }
