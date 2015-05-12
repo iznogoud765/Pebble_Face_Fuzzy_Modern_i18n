@@ -103,7 +103,7 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   // animate out current layer
   GRect from_frame_out = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
   GRect to_frame_out = animating_line->out_rect;
-  from_frame_out.origin.x = 0;
+  from_frame_out.origin.x = 2;
   
   if(animating_line->out_rect.origin.x == 144) {
     to_frame_out.origin.x = 144;
@@ -131,7 +131,7 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
     else
       from_frame_in.origin.y = line_y[2]+animating_line->out_rect.size.h;
   }
-  to_frame_in.origin.x = 0;
+  to_frame_in.origin.x = 2;
 
   // Create the animation
   animating_line->animate_in = property_animation_create_layer_frame(text_layer_get_layer(animating_line->layer[1]), &from_frame_in, &to_frame_in);
@@ -369,12 +369,12 @@ static void main_window_load(Window *window) {
   // Init the text layers used to show the time
   for(i=0; i<3; i++) {
     for(j=0; j<2; j++) {
-      line[i].layer[j] = text_layer_create(GRect(j==0?0:i%2==1?-144:144, line_y[i], bounds.size.w, line_h));
+      line[i].layer[j] = text_layer_create(GRect(j==0?2:i%2==1?-144:144, line_y[i], bounds.size.w-2, line_h));
       text_layer_set_background_color(line[i].layer[j], GColorClear);
       text_layer_set_font(line[i].layer[j], s_time_font);
       text_layer_set_overflow_mode(line[i].layer[j], GTextOverflowModeWordWrap);
     }
-    line[i].out_rect = GRect(i%2==1?144:-144, line_y[i], bounds.size.w, line_h);
+    line[i].out_rect = GRect(i%2==1?144:-144, line_y[i], bounds.size.w-2, line_h);
   }
   
   // top text
@@ -387,7 +387,7 @@ static void main_window_load(Window *window) {
   //  toplayer = text_layer_create(GRect(30, 0, bounds.size.w-2*30, 18));
   toplayer = text_layer_create(GRect((bounds.size.w-topwidth)/2, -2, topwidth, 18));
   text_layer_set_text_alignment(toplayer, GTextAlignmentCenter);
-  text_layer_set_font(toplayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  text_layer_set_font(toplayer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   
   // bottom text
   bottomlayer = text_layer_create(GRect(0, bounds.size.h-22, bounds.size.w, 22));
