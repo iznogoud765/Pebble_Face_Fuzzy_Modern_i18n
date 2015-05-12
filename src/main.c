@@ -277,24 +277,24 @@ void change_background(bool param) {
   if(param) {
     window_set_background_color(s_main_window, GColorBlue);
     for(i=0; i<3; i++) {
-      text_layer_set_text_color(line[i].layer[0], GColorPastelYellow);
+      text_layer_set_text_color(line[i].layer[0], GColorIcterine);
       text_layer_set_text_color(line[i].layer[1], GColorYellow);
     }
-    text_layer_set_background_color(toplayer, GColorBlueMoon);
-    text_layer_set_text_color(toplayer, GColorIcterine);
-    text_layer_set_background_color(bottomlayer, GColorBlueMoon);
-    text_layer_set_text_color(bottomlayer, GColorIcterine);
+    text_layer_set_background_color(toplayer, GColorDukeBlue);
+    text_layer_set_text_color(toplayer, GColorYellow);
+    text_layer_set_background_color(bottomlayer, GColorDukeBlue);
+    text_layer_set_text_color(bottomlayer, GColorYellow);
   }
   else {
-    window_set_background_color(s_main_window, GColorCeleste);
+    window_set_background_color(s_main_window, GColorYellow);
     for(i=0; i<3; i++) {
       text_layer_set_text_color(line[i].layer[0], GColorCobaltBlue);
       text_layer_set_text_color(line[i].layer[1], GColorBlue);
     }
-    text_layer_set_background_color(toplayer, GColorPictonBlue);
-    text_layer_set_text_color(toplayer, GColorWhite);
-    text_layer_set_background_color(bottomlayer, GColorPictonBlue);
-    text_layer_set_text_color(bottomlayer, GColorWhite);
+    text_layer_set_background_color(toplayer, GColorIcterine);
+    text_layer_set_text_color(toplayer, GColorBlue);
+    text_layer_set_background_color(bottomlayer, GColorIcterine);
+    text_layer_set_text_color(bottomlayer, GColorBlue);
   }
   bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpSet);
   bitmap_layer_set_compositing_mode(s_ch_bitmap_layer, GCompOpSet);
