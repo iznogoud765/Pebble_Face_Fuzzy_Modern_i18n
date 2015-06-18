@@ -55,8 +55,19 @@ void info_lines(struct tm* t, char* line1, char* line2) {
     strftime(line1, LINE_BUFFER_SIZE, "%I:%M %p", t);
   }
   
+  const char* str_lang =  i18n_get_system_locale();
+  const char* str_datefmt = "%A %e %B";
   // Write the current date into the buffer
-  strftime(line2, LINE_BUFFER_SIZE, "%A %e %B", t);
+  if (strcmp("en_US", str_lang) == 0) 
+    str_datefmt = "%A, %B %e";
+  else if (strcmp("es_ES", str_lang) == 0) 
+    str_datefmt = "%A, %e de %B";
+  else if (strcmp("de_DE", str_lang) == 0) 
+    str_datefmt = "%A, den %e. %B";
+  else
+    str_datefmt = "%A %e %B";
+    
+  strftime(line2, LINE_BUFFER_SIZE, str_datefmt, t);
 /*  
   char buf[LINE_BUFFER_SIZE];
   strftime(buf, LINE_BUFFER_SIZE, "%c", t);
