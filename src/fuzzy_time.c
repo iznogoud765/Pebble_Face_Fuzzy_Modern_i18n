@@ -68,9 +68,12 @@ void info_lines(struct tm* t, char* line1, char* line2) {
     str_datefmt = "%A %e %B";
     
   strftime(line2, LINE_BUFFER_SIZE, str_datefmt, t);
+
 /*  
   char buf[LINE_BUFFER_SIZE];
-  strftime(buf, LINE_BUFFER_SIZE, "%c", t);
+  strftime(buf, LINE_BUFFER_SIZE, "%Ec", t);
   APP_LOG(APP_LOG_LEVEL_DEBUG , "date: %s", buf);
+  strftime(buf, LINE_BUFFER_SIZE, "%r", t);
+  APP_LOG(APP_LOG_LEVEL_DEBUG , "time: %s", buf);
 */
 }

@@ -27,7 +27,7 @@ const char* const REL_EN[] = {
   "twenty",
   "half"
 };
-
+/*
 static const char* const ONETEENS[] = {
   "zero",
   "one",
@@ -57,22 +57,22 @@ static const char* const TWENS[] = {
   "forty",
   "fifty",
 };
-
-static const char* STR_TEEN = "teen";
+*/
+//static const char* STR_TEEN = "teen";
 static const char* STR_OH_CLOCK = "o'clock";
-static const char* STR_OH = "o'";
+//static const char* STR_OH = "o'";
 static const char* STR_NOON = "noon";
 static const char* STR_MID = "mid-";  // midnight
 static const char* STR_NIGHT = "night";  // midnight
-static const char* STR_MIDNIGHT = "midnite";  // midnight
-static const char* STR_QUARTER = "quarter";
+//static const char* STR_MIDNIGHT = "midnite";  // midnight
+//static const char* STR_QUARTER = "quarter";
 static const char* STR_TO = "to";
 static const char* STR_PAST = "past";
-static const char* STR_HALF = "half";
-static const char* STR_ITS = "it's";
-static const char* STR_NOW = "now";
+//static const char* STR_HALF = "half";
+//static const char* STR_ITS = "it's";
+//static const char* STR_NOW = "now";
 static const char* STR_ALMOST = "almost";
-static const char* STR_JUST = "just";
+//static const char* STR_JUST = "just";
 static const char* STR_ALREADY = "already";
 
 
