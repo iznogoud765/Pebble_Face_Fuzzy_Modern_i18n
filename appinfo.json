@@ -12,6 +12,12 @@
     "resources": {
         "media": [
             {
+                "file": "images/menu_icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            },
+            {
                 "file": "images/charging.png",
                 "name": "IMAGE_CHARGING",
                 "type": "png"
@@ -57,13 +63,13 @@
                 "type": "png"
             },
             {
-                "file": "images/charge10.png",
-                "name": "IMAGE_CHARGE10",
+                "file": "images/charge100.png",
+                "name": "IMAGE_CHARGE100",
                 "type": "png"
             },
             {
-                "file": "images/charge100.png",
-                "name": "IMAGE_CHARGE100",
+                "file": "images/charge10.png",
+                "name": "IMAGE_CHARGE10",
                 "type": "png"
             },
             {
@@ -77,19 +83,13 @@
                 "type": "png"
             },
             {
-                "file": "images/menu_icon.png",
-                "menuIcon": true,
-                "name": "IMAGE_MENU_ICON",
-                "type": "png"
-            },
-            {
                 "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_35",
                 "type": "font"
             },
             {
                 "file": "fonts/Domestic_Manners.ttf",
-                "name": "FONT_DOMESTIC_NORMAL_SUBSET_35",
+                "name": "FONT_DOMESTIC_NORMAL_SUBSET_48",
                 "type": "font"
             },
             {
@@ -103,10 +103,11 @@
     "shortName": "Fuzzy Modern",
     "targetPlatforms": [
         "aplite",
-        "basalt"
+        "basalt",
+        "chalk"
     ],
     "uuid": "48eb8a14-ba93-45c1-87f6-ac117b4a23df",
-    "versionLabel": "2.3",
+    "versionLabel": "3.0",
     "watchapp": {
         "watchface": true
     }
