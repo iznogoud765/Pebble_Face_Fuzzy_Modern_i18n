@@ -59,7 +59,7 @@ enum {
   TEXT_ALIGN_RIGHT
 };
 
-static int text_align = PBL_IF_RECT_ELSE(TEXT_ALIGN_LEFT,TEXT_ALIGN_CENTER);
+static int text_align = TEXT_ALIGN_LEFT;
 static bool isBkgdDark = true;
 
 
@@ -81,7 +81,7 @@ static GTextAlignment lookup_text_alignment(int align_key)
 	return alignment;
 }
 
-#ifdef PBL_PLATFORM_APLITE
+#ifndef PBL_PLATFORM_BASALT
 static void anim_stopped_handler(Animation *animation, bool finished, void *context) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "anim_stopped_handler %p", animation);  
 #ifndef PBL_COLOR
@@ -100,19 +100,16 @@ static void anim_stopped_handler(Animation *animation, bool finished, void *cont
 #endif
 
 void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool isbold) {
-  Layer *root_layer = window_get_root_layer(s_main_window);
-	GRect bounds = layer_get_frame(root_layer);
-
   // animate out current layer
   GRect from_frame_out = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
   GRect to_frame_out = animating_line->out_rect;
   from_frame_out.origin.x = 2;
   
-  if(animating_line->out_rect.origin.x == bounds.size.w) {
-    to_frame_out.origin.x = bounds.size.w;
+  if(animating_line->out_rect.origin.x == 144) {
+    to_frame_out.origin.x = 144;
   }
   else {
-    to_frame_out.origin.x = -bounds.size.w;
+    to_frame_out.origin.x = -144;
     to_frame_out.origin.y = line_y[1];
   }
   
@@ -124,11 +121,11 @@ void updateLayer(TextLine *animating_line, char* old_line, char* new_line, bool 
   GRect to_frame_in = layer_get_frame(text_layer_get_layer(animating_line->layer[0]));
   to_frame_in.origin.y = animating_line->out_rect.origin.y;
 
-  if(animating_line->out_rect.origin.x == bounds.size.w) {
-    from_frame_in.origin.x = -bounds.size.w;
+  if(animating_line->out_rect.origin.x == 144) {
+    from_frame_in.origin.x = -144;
   }
   else {
-    from_frame_in.origin.x = bounds.size.w;
+    from_frame_in.origin.x = 144;
     if(animating_line->out_rect.origin.y==line_y[0])
       from_frame_in.origin.y = line_y[0]-animating_line->out_rect.size.h;
     else
@@ -372,25 +369,23 @@ static void main_window_load(Window *window) {
   // Init the text layers used to show the time
   for(i=0; i<3; i++) {
     for(j=0; j<2; j++) {
-      line[i].layer[j] = text_layer_create(GRect(j==0?2:i%2==1?-1*bounds.size.w:bounds.size.w, line_y[i], bounds.size.w-2, line_h));
+      line[i].layer[j] = text_layer_create(GRect(j==0?2:i%2==1?-144:144, line_y[i], bounds.size.w-2, line_h));
       text_layer_set_background_color(line[i].layer[j], GColorClear);
       text_layer_set_font(line[i].layer[j], s_time_font);
       text_layer_set_overflow_mode(line[i].layer[j], GTextOverflowModeWordWrap);
     }
-    line[i].out_rect = GRect(i%2==1?bounds.size.w:-1*bounds.size.w, line_y[i], bounds.size.w-2, line_h);
+    line[i].out_rect = GRect(i%2==1?144:-144, line_y[i], bounds.size.w-2, line_h);
   }
   
   // top text
-#ifdef PBL_RECT
   int topwidth = 0;
   if(clock_is_24h_style() == true) {
     topwidth = 40;
   } else {
     topwidth = 60;
   }
-#endif
   //  toplayer = text_layer_create(GRect(30, 0, bounds.size.w-2*30, 18));
-  toplayer = text_layer_create(GRect(PBL_IF_RECT_ELSE((bounds.size.w-topwidth)/2, 0), -2, PBL_IF_RECT_ELSE(topwidth,bounds.size.w), 18));
+  toplayer = text_layer_create(GRect((bounds.size.w-topwidth)/2, -2, topwidth, 18));
   text_layer_set_text_alignment(toplayer, GTextAlignmentCenter);
   text_layer_set_font(toplayer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   
@@ -400,20 +395,20 @@ static void main_window_load(Window *window) {
   text_layer_set_font(bottomlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
   // battery text
-  batterylayer = text_layer_create(GRect(bounds.size.w-21-33-PBL_IF_RECT_ELSE(0,8), PBL_IF_RECT_ELSE(-3,50), 33, 18));
+  batterylayer = text_layer_create(GRect(bounds.size.w-21-33, -3, 33, 18));
   text_layer_set_background_color(batterylayer, GColorClear);
   text_layer_set_font(batterylayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(batterylayer, GTextAlignmentRight);
   
   // Create charging GBitmap, then set to created BitmapLayer
-  s_ch_bitmap_layer = bitmap_layer_create(GRect(bounds.size.w-21-PBL_IF_RECT_ELSE(0,8), PBL_IF_RECT_ELSE(0,53), 20, 17));
+  s_ch_bitmap_layer = bitmap_layer_create(GRect(bounds.size.w-21, 0, 20, 17));
   bitmap_layer_set_background_color(s_ch_bitmap_layer, GColorClear); 
   s_bitmap_charging = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CHARGE10);
   
   // Create bluetooth GBitmap, then set to created BitmapLayer
   s_bitmap_bt_on = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_ON);
   s_bitmap_bt_off = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_OFF);
-  s_bt_bitmap_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(0,8), PBL_IF_RECT_ELSE(0,50), 15, 22));
+  s_bt_bitmap_layer = bitmap_layer_create(GRect(0, 0, 15, 22));
     
   // apply settings
   change_background(isBkgdDark);
@@ -594,7 +589,7 @@ static void init() {
 #endif
   
   // Open AppMessage
-  app_message_open(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
   // Setup initial values
   Tuplet initial_values[] = {

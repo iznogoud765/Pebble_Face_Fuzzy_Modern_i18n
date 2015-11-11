@@ -12,12 +12,6 @@
     "resources": {
         "media": [
             {
-                "file": "images/menu_icon.png",
-                "menuIcon": true,
-                "name": "IMAGE_MENU_ICON",
-                "type": "png"
-            },
-            {
                 "file": "images/charging.png",
                 "name": "IMAGE_CHARGING",
                 "type": "png"
@@ -109,8 +103,7 @@
     "shortName": "Fuzzy Modern",
     "targetPlatforms": [
         "aplite",
-        "basalt",
-        "chalk"
+        "basalt"
     ],
     "uuid": "48eb8a14-ba93-45c1-87f6-ac117b4a23df",
     "versionLabel": "2.3",
