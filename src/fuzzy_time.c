@@ -58,6 +58,12 @@ void info_lines(struct tm* t, char* line1, char* line2) {
   const char* str_lang =  i18n_get_system_locale();
   const char* str_datefmt = "%A %e %B";
   // Write the current date into the buffer
+#ifdef PBL_PLATFORM_CHALK
+  if (strcmp("en_US", str_lang) == 0) 
+    str_datefmt = "%m/%d";
+  else
+    str_datefmt = "%d/%m";
+#else
   if (strcmp("en_US", str_lang) == 0) 
     str_datefmt = "%A, %B %e";
   else if (strcmp("es_ES", str_lang) == 0) 
@@ -66,7 +72,7 @@ void info_lines(struct tm* t, char* line1, char* line2) {
     str_datefmt = "%A, den %e. %B";
   else
     str_datefmt = "%A %e %B";
-    
+#endif    
   strftime(line2, LINE_BUFFER_SIZE, str_datefmt, t);
 
 /*  
