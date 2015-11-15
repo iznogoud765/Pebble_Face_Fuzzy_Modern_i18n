@@ -291,8 +291,18 @@ static void my_layer_draw(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
   GColor bkcolor = isBkgdDark?PBL_IF_COLOR_ELSE(GColorBlue, GColorBlack):PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite);
-  GColor botopcolor = isBkgdDark?PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorBlack):PBL_IF_COLOR_ELSE(GColorIcterine, GColorWhite);
+  GColor botopcolor = isBkgdDark?PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorBlack):PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite);
   
+  // top text
+#ifdef PBL_RECT
+  int topwidth = 0;
+  if(clock_is_24h_style() == true) {
+    topwidth = 40;
+  } else {
+    topwidth = 60;
+  }
+#endif
+
   // Background
   // Draw a black filled rectangle with sharp corners
   graphics_context_set_fill_color(ctx, bkcolor);
@@ -301,7 +311,7 @@ static void my_layer_draw(Layer *layer, GContext *ctx) {
   // Top and Bottom bars
   graphics_context_set_fill_color(ctx, botopcolor);
 #if defined(PBL_RECT)
-  graphics_fill_rect(ctx, GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, 20), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect((bounds.size.w-topwidth)/2, bounds.origin.y, topwidth, 20), 0, GCornerNone);
   graphics_fill_rect(ctx, GRect(bounds.origin.x, bounds.size.h-20, bounds.size.w, 20), 0, GCornerNone);
 #elif defined(PBL_ROUND)
   // Draw a white filled circles 
